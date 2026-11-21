@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=66"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinel-agent"
+version = "0.1.0"
+description = "Agente de evaluación de seguridad con alcance, tiers y auditoría verificables (solo detección y validación no destructiva)"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+sentinel = "sentinel.cli:main"
+sentinel-web = "sentinel.webapp:main"
+
+[tool.setuptools]
+packages = ["sentinel", "sentinel.checks"]
+
+[tool.setuptools.package-data]
+sentinel = ["data/*.json", "web/*.html", "web/*.css", "web/*.js"]
