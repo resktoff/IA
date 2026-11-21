@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import unittest
 
-from sentinel.audit import read_records
+from sentinel.audit import AuditLog, read_records
 from sentinel.errors import (
     AuthorizationError,
     BudgetExceeded,
@@ -15,7 +16,7 @@ from sentinel.errors import (
     ScopeViolation,
 )
 from sentinel.model import Tier
-from sentinel.scope import PortSet, Scope, ScopeGuard, TokenBucket
+from sentinel.scope import PortSet, Scope, ScopeGuard, Target, TokenBucket
 
 from .support import make_guard, scope_dict, tempdir
 
@@ -53,6 +54,17 @@ class TestScopeLoading(unittest.TestCase):
         with self.assertRaises(ScopeError) as ctx:
             Scope.from_dict(scope_dict(targets=[{"kind": "host", "value": "169.254.169.254", "ports": [80]}]))
         self.assertIn("169.254", str(ctx.exception))
+
+    def test_ipv6_metadata_inside_cidr_is_blocked(self) -> None:
+        for cidr in (
+            "fd00:ec2::/112",
+            "fd00:ec2::200/120",
+            "::ffff:169.254.169.0/120",
+        ):
+            with self.subTest(cidr=cidr), self.assertRaisesRegex(ScopeError, "metadata"):
+                Scope.from_dict(scope_dict(targets=[{
+                    "kind": "cidr", "value": cidr, "ports": [80], "max_tier": 2,
+                }]))
 
     def test_multicast_blocked(self) -> None:
         with self.assertRaises(ScopeError):
@@ -146,6 +158,58 @@ class TestGuard(unittest.TestCase):
             guard.check("tcp_connect", "127.0.0.1", 18080, Tier.VALIDATE)
         denied = [r for r in read_records(audit.path) if r["outcome"] == "denied"]
         self.assertTrue(any("budget" in r["detail"]["reason"] for r in denied))
+
+    def test_request_budget_max_one_is_atomic_under_concurrency(self) -> None:
+        scope = Scope.from_dict(scope_dict(max_requests=1))
+        audit = AuditLog(os.path.join(self.dir, "concurrent-audit.jsonl"),
+                         scope.engagement_id, scope.operator)
+        entered_bucket = threading.Event()
+        release_bucket = threading.Event()
+
+        class PausingBucket:
+            def acquire(self) -> float:
+                entered_bucket.set()
+                if not release_bucket.wait(timeout=3):
+                    raise AssertionError("test did not release the bucket")
+                return 0.0
+
+        guard = ScopeGuard(scope, audit, bucket=PausingBucket())
+        outcomes: list[str] = []
+
+        def first_check() -> None:
+            try:
+                guard.check("tcp_connect", "127.0.0.1", 18080, Tier.VALIDATE)
+                outcomes.append("allowed")
+            except Exception as exc:  # captured for assertion on the test thread
+                outcomes.append(type(exc).__name__)
+
+        worker = threading.Thread(target=first_check)
+        worker.start()
+        self.assertTrue(entered_bucket.wait(timeout=3), "first check did not reach the bucket")
+        try:
+            with self.assertRaises(BudgetExceeded):
+                guard.check("tcp_connect", "127.0.0.1", 18080, Tier.VALIDATE)
+        finally:
+            release_bucket.set()
+            worker.join(timeout=3)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(outcomes, ["allowed"])
+        self.assertEqual(guard.stats.network_ops, 1)
+        self.assertEqual(guard.stats.allowed, 1)
+
+    def test_scopeguard_blocks_metadata_even_if_scope_is_injected(self) -> None:
+        scope, audit, _ = make_guard(self.dir)
+        cases = (
+            ("fd00:ec2::/112", "fd00:ec2::254"),
+            ("::ffff:169.254.169.0/120", "::ffff:169.254.169.254"),
+        )
+        for cidr, endpoint in cases:
+            with self.subTest(endpoint=endpoint):
+                scope.targets = [Target("cidr", cidr, PortSet([80]), 2)]
+                guard = ScopeGuard(scope, audit)
+                with self.assertRaises(ScopeViolation):
+                    guard.check("tcp_connect", endpoint, 80, Tier.VALIDATE)
+                self.assertEqual(guard.stats.network_ops, 0)
 
     def test_try_check_returns_false(self) -> None:
         _, _, guard = make_guard(self.dir)

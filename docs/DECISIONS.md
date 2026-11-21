@@ -12,13 +12,15 @@ dónde está implementada. Todas las que dicen "implementada" tienen un control 
 tercero.
 
 **Decisión.** El agente solo actúa sobre targets declarados en un archivo JSON con esquema versionado,
-que incluye autorización explícita, vigencia, puertos y tier máximo. Sin match exacto de host y puerto,
-la acción se rechaza. El rechazo se registra en la auditoría antes de lanzar la excepción.
+que incluye declaraciones de autorización, vigencia, puertos y tier máximo. Los campos `authorized`,
+`reference` y `approved_by` no se verifican contra una fuente externa ni prueban consentimiento. Sin match
+exacto de host y puerto, la acción se rechaza. Los rechazos del `ScopeGuard` se registran en la cadena;
+algunos rechazos HTTP/scope capturados por el handler se reflejan en la actividad en memoria; rechazos tempranos (como Origin) pueden no registrarse y esos eventos no se garantizan en la cadena.
 
 **Consecuencias.**
 - (+) Es imposible "escanear un /16 por accidente": los hosts se expanden solo desde un CIDR declarado y
   los puertos son obligatorios.
-- (+) El rechazo queda trazado, así que un intento fuera de alcance es visible en el informe.
+- (+) Los rechazos del guard de alcance quedan en la cadena de la ejecución; no todas las solicitudes inválidas del plano HTTP se persisten.
 - (−) Más fricción operativa: hay que escribir el alcance antes de empezar. Es intencional.
 
 **Alternativas descartadas.** Lista de IPs por CLI (sin vigencia ni autorización); confiar en un firewall
@@ -78,8 +80,9 @@ retransmisiones manuales.
 accidente y usar el agente como cliente SSRF contra el endpoint de metadatos cloud.
 
 **Decisión.**
-- Siempre bloqueados: `0.0.0.0/8`, `169.254.0.0/16` (incluye 169.254.169.254), `224.0.0.0/4`,
-  `240.0.0.0/4`, `fe80::/10`, `ff00::/8`, broadcast.
+- Siempre bloqueados: `0.0.0.0/8`, `169.254.0.0/16` (incluye 169.254.169.254), `fd00:ec2::254`,
+  `224.0.0.0/4`, `240.0.0.0/4`, `fe80::/10`, `ff00::/8`, broadcast. Los CIDR que contengan cualquiera
+  de los endpoints de metadata también se rechazan; el guard vuelve a bloquear cada IP autorizada.
 - Direcciones globales: requieren `allow_public: true` **en el target y en el scope**.
 - Nombres de host como target: rechazados (solo IP/CIDR), para que la resolución DNS no pueda cambiar el
   destino después de la validación.
@@ -91,6 +94,7 @@ accidente y usar el agente como cliente SSRF contra el endpoint de metadatos clo
 **Implementación.** `sentinel/scope.py::_validate_network_target`, `ALWAYS_BLOCKED_NETWORKS`,
 `METADATA_ADDRESSES`, `ScopeGuard._match_target`.
 **Tests.** `test_scope.py::test_metadata_endpoint_always_blocked`,
+`test_ipv6_metadata_inside_cidr_is_blocked`, `test_scopeguard_blocks_metadata_even_if_scope_is_injected`,
 `test_public_address_requires_double_opt_in`, `test_hostname_target_rejected`.
 
 ---
@@ -213,15 +217,18 @@ correspondiente por versión (p. ej. CVE-2018-15473) sin intentar explotarlo.
 **Contexto.** Un informe sin traza de lo que hizo el agente no es defendible ante el cliente ni ante un
 incidente.
 
-**Decisión.** Cada acción y cada rechazo se escriben en un JSONL append-only donde
-`hash = SHA-256(prev_hash + canonical_json(registro))`, con génesis de 64 ceros, `fsync` por registro y
-verificación embebida en el informe. Un archivo `STOP` (configurable) detiene la ejecución en la
-siguiente acción.
+**Decisión.** Los eventos que llaman a `AuditLog.record` se escriben en un JSONL con
+`hash = SHA-256(prev_hash + canonical_json(registro))`, génesis de 64 ceros, `fsync` por registro y
+verificación embebida en el informe. Esto comprueba consistencia interna, pero no garantiza inmutabilidad,
+autoría ni completitud: una cola truncada coherentemente o una cadena recalculada requieren una cabeza
+retenida externamente para detectarse. La actividad HTTP de la interfaz se mantiene en memoria (máximo
+200 eventos); solicitudes rechazadas y cancelaciones no son necesariamente eventos individuales de la
+cadena. Un archivo `STOP` (configurable) detiene la ejecución en la siguiente acción.
 
 **Consecuencias.**
-- (+) Editar, borrar o reordenar registros rompe la verificación; un tercero puede auditar la corrida.
-- (+) El operador puede abortar en cualquier momento sin matar el proceso.
-- (−) El log crece con cada acción (trivial para el volumen previsto) y hay un `fsync` por registro.
+- (+) Editar, borrar o reordenar registros dentro de la cadena presente rompe la verificación.
+- (+) El operador puede solicitar detener el escaneo; la cancelación es cooperativa.
+- (−) Sin ancla externa no se puede probar autoría ni detectar de forma general el truncamiento de cola.
 
 **Implementación.** `sentinel/audit.py`, `ScopeGuard._check_killswitch`, `sentinel/cli.py verify-audit`.
 **Tests.** `test_audit.py` (6 casos de manipulación), `test_scope.py::test_killswitch_blocks_everything`,

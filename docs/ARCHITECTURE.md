@@ -55,7 +55,7 @@
 | Módulo | Responsabilidad | Tier | Entradas | Salidas |
 |---|---|---|---|---|
 | `scope.py` | Cargar/validar el alcance; autorizar o rechazar cada acción y registrarla | — | JSON de alcance, host/puerto/tier | `Scope`, decisión allow/deny, registro de auditoría |
-| `audit.py` | Traza append-only encadenada; verificación de integridad | — | acción, resultado, detalle | JSONL con `prev_hash`/`hash`, informe de verificación |
+| `audit.py` | Registro JSONL con hash encadenado y verificación de consistencia interna | — | acción, resultado, detalle | JSONL con `prev_hash`/`hash`, informe de verificación |
 | `collectors.py` | Hechos locales de solo lectura (identidad, SO, cuentas, sshd, PAM, sudo, SUID, capabilities, cron, PATH, systemd, permisos) | 1 | `ScopeGuard` | `LocalFacts` + evidencia |
 | `discovery.py` | Fingerprint de servicios: TCP connect, banner pasivo, una petición HTTP, handshake TLS con certificado | 2 | `ScopeGuard`, host, puertos autorizados | `Asset`/`Service` + evidencia |
 | `checks/ssh.py` | Reglas sobre `sshd_config` con semántica *first value wins* y defaults | 1 | `LocalFacts` | `Finding[]` |
@@ -72,7 +72,7 @@
 
 ## 4. Flujo de una ejecución
 
-1. **Carga del alcance** (`Scope.from_file`): esquema, autorización explícita, vigencia, targets,
+1. **Carga del alcance** (`Scope.from_file`): esquema, declaraciones de autorización (no verificadas externamente), vigencia, targets,
    puertos, presupuesto. Cualquier fallo aborta antes de tocar el sistema.
 2. **Apertura de auditoría**: se crea/reanuda el JSONL y se registra `run_start`.
 3. **Instanciación del guard**: rate limiter y contadores por corrida.
@@ -83,7 +83,7 @@
 5. **Interpretación**: checks puros → `Finding[]` con evidencia.
 6. **Agregación**: deduplicación por fingerprint estable, orden por score, matriz de cobertura
    (`partial`/`blocked` incluidos) y lista de comprobaciones no ejecutadas.
-7. **Cierre**: `finished_at`, `run_finish`, verificación de la cadena de auditoría embebida en el informe.
+7. **Cierre**: `finished_at`, `run_finish`, verificación de consistencia interna de los registros de auditoría presentes (no de autoría ni completitud), embebida en el informe.
 8. **Render**: Markdown, HTML autocontenido y JSON con digests.
 
 ## 5. Modelo de datos

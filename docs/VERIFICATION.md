@@ -33,13 +33,15 @@ Atajos equivalentes: `make test`, `make selfcheck`, `make demo`, `make verify`.
 
 ## Resultados de referencia
 
-- Tests: **216 OK** (`unittest discover`). Las pruebas que dependen de sockets solo conectan a
+- Tests: **222 OK** (`unittest discover`). Las pruebas que dependen de sockets solo conectan a
   `127.0.0.1` en servidores efímeros creados por el propio test.
 - Self-check: **30/30 PASS**, incluyendo controles negativos de autorización, metadata cloud,
   host/puerto fuera del alcance, tier, kill switch, ataques de credenciales y alteración de auditoría.
 - `assess --mode local`: genera Markdown, HTML, JSON y JSONL; no intenta una conexión de red.
-- `verify-audit`: devuelve `ok: true`, la cantidad de registros y el hash final. Si se altera, trunca o
-  reordena el JSONL, devuelve código distinto de cero y explica la primera línea no válida.
+- `verify-audit`: devuelve `ok: true`, la cantidad de registros y el hash final si la cadena presente
+  es internamente consistente. Ediciones/reordenamientos detectables fallan, pero truncar una cola en un
+  límite de registro puede seguir dando `ok: true`; sin una cabeza anclada externamente no acredita
+  completitud, autoría ni inmutabilidad.
 
 ## Qué prueba cada conjunto
 

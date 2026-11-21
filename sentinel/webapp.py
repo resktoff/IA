@@ -9,6 +9,7 @@ import ipaddress
 import json
 import os
 import re
+import sys
 import threading
 import time
 import uuid
@@ -219,7 +220,7 @@ class SentinelWeb:
                                 else "Reconocimiento completado", result=summary)
             self._log(f"ESCANEAR {status}: {len(assessment.assets)} activos, "
                       f"{sum(len(a.services) for a in assessment.assets)} servicios abiertos; auditoría "
-                      f"{'íntegra' if assessment.audit_chain.get('ok') else 'con error'}",
+                      f"{'consistente internamente' if assessment.audit_chain.get('ok') else 'con error'}",
                       "warning" if was_cancelled else "success", op.id)
         except Exception as exc:
             if audit is not None:
@@ -530,7 +531,7 @@ class WebHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
 
-def create_server(host: str = "0.0.0.0", port: int = 8765,
+def create_server(host: str = "127.0.0.1", port: int = 8765,
                   app: SentinelWeb | None = None) -> ThreadingHTTPServer:
     server = ThreadingHTTPServer((host, port), WebHandler)
     server.daemon_threads = True
@@ -542,10 +543,19 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Interfaz web local de Sentinel")
-    parser.add_argument("--host", default="0.0.0.0", help="interfaz de escucha (default 0.0.0.0 para preview)")
+    parser.add_argument(
+        "--host", default="127.0.0.1",
+        help="interfaz de escucha (default 127.0.0.1); otros hosts amplían la exposición y no hay autenticación",
+    )
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--data-dir", default=str(DEFAULT_DATA_DIR))
     args = parser.parse_args()
+    if args.host not in {"127.0.0.1", "::1", "localhost"}:
+        print(
+            "ADVERTENCIA: Sentinel Web no incluye autenticación ni TLS; una interfaz no-loopback "
+            "puede exponer operaciones e informes a otros equipos. No lo use en redes compartidas.",
+            file=sys.stderr,
+        )
     server = create_server(args.host, args.port, SentinelWeb(args.data_dir))
     print(f"Sentinel Web {__version__} escuchando en http://{args.host}:{args.port}")
     print(f"Artefactos de ejecuciones web: {Path(args.data_dir).resolve()}")

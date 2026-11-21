@@ -255,7 +255,7 @@
     try {
       const result = await jsonPost('/api/report', { scan_id: state.scanId });
       pill('report-state', 'GENERADO', 'done');
-      setCardText('report-result', `${result.findings} hallazgo(s) · cadena ${result.audit_chain.ok ? 'íntegra' : 'REVISAR'}`, 'positive');
+      setCardText('report-result', `${result.findings} hallazgo(s) · cadena ${result.audit_chain.ok ? 'consistente internamente' : 'REVISAR'}`, 'positive');
       $('report-id').textContent = result.scan_id;
       $('report-frame').src = `/api/reports/${encodeURIComponent(state.scanId)}/view`;
       $('download-links').innerHTML = ['markdown','html','json'].map(kind => `<a href="/api/reports/${encodeURIComponent(state.scanId)}/${kind}">DESCARGAR ${kind.toUpperCase()} ↓</a>`).join('');

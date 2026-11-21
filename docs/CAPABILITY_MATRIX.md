@@ -38,7 +38,7 @@ Estados:
 
 | Módulo | Tests | Archivo |
 |---|---|---|
-| `scope.py` | 25 | `tests/test_scope.py` |
+| `scope.py` | 28 | `tests/test_scope.py` |
 | `audit.py` | 8 | `tests/test_audit.py` |
 | `cvss.py` | 9 | `tests/test_cvss.py` |
 | `versions.py` + avisos | 11 | `tests/test_versions.py` |
@@ -51,8 +51,8 @@ Estados:
 | `report.py` | 19 | `tests/test_report.py` |
 | `engine.py` | 14 | `tests/test_engine.py` |
 | controles + CLI + self-check | 14 | `tests/test_controls.py` |
-| `webapp.py` / API y ciclo de botones | 9 | `tests/test_webapp.py` |
-| **Total** | **216** | `python3 -m unittest discover -s tests -t .` |
+| `webapp.py` / API y ciclo de botones | 12 | `tests/test_webapp.py` |
+| **Total** | **222** | `python3 -m unittest discover -s tests -t .` |
 
 La matriz también se emite en cada informe (`CapabilityCoverage`), con el campo `exercised_in_run`
 calculado a partir de lo que realmente se ejecutó en esa corrida.

@@ -1,13 +1,14 @@
 """Append-only, hash-chained audit trail.
 
 Each record links to its predecessor: ``hash = sha256(prev_hash + canonical_json)``
-with a genesis of 64 zeros.  Deleting, reordering or editing any record breaks
-verification, which is what makes the log usable as evidence of *what the agent
-did and what it refused to do*.
+with a genesis of 64 zeros. Verification checks the internal consistency of the
+records present. It does not by itself guarantee immutability, authorship, or
+completeness: a coherent tail truncation or a recomputed chain is not detectable
+without an independently retained head or other external anchor.
 
-The log is also a safety mechanism: a refusal (``outcome="denied"``) is written
-before the exception is raised, so attempts to go out of scope are recorded
-rather than silently dropped.
+The per-run log records guard decisions and run events that call ``record``.
+It does not include every web control-plane event; the web activity panel is an
+in-memory, bounded list and is not a durable audit source.
 """
 
 from __future__ import annotations

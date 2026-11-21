@@ -5,16 +5,22 @@
 No requiere paquetes externos (Python stdlib):
 
 ```bash
-python3 -m sentinel.webapp --host 0.0.0.0 --port 8765
+python3 -m sentinel.webapp --port 8765
 ```
 
-Abrí `http://localhost:8765`. En Arena, el proceso puede publicarse como preview; el frontend usa
-rutas relativas (`/api/...`) y el servidor escucha en `0.0.0.0`. Para instalar el entry point del
-proyecto: `python3 -m pip install -e .` y luego `sentinel-web --port 8765`.
+Abrí `http://127.0.0.1:8765`. Por defecto el servidor solo escucha en loopback. `--host HOST` permite
+configurar explícitamente otra interfaz; hacerlo amplía quién puede alcanzar las operaciones y los
+informes. Sentinel Web no tiene autenticación ni TLS propios, así que no debe considerarse seguro para
+redes compartidas ni exponerse como servicio remoto. El frontend usa rutas relativas (`/api/...`). Para
+instalar el entry point del proyecto: `python3 -m pip install -e .` y luego `sentinel-web --port 8765`.
 
 Los artefactos web se guardan en `evidence/web/<run-id>/`. Se excluyen de Git como cualquier otra salida
 de `evidence/`. El estado de la sesión (selección de escaneo y botones habilitados) permanece en memoria
-del proceso; los informes y auditorías quedan en disco.
+del proceso; los informes y auditorías de cada ejecución quedan en disco. El panel `activity` es distinto:
+es una lista en memoria, truncada a los 200 eventos más recientes, y no constituye un registro persistente.
+Algunos rechazos de POST capturados por el handler y las solicitudes de cancelación aparecen en esa
+actividad; rechazos tempranos (por ejemplo, Origin) pueden no registrarse. Ninguno de esos eventos está
+garantizado como evento individual en la cadena persistente.
 
 ## Flujo de las tres acciones
 
@@ -40,8 +46,10 @@ actividad se alimenta del registro de operaciones del backend.
 
 ## Alcance y advertencias
 
-- El JSON debe ser emitido/aprobado por quien autoriza la prueba; los campos de ejemplo de repositorio
-  no constituyen autorización real.
+- `authorization.authorized`, `reference` y `approved_by` son declaraciones incluidas en el JSON. El
+  parser solo valida su presencia/valor; no verifica identidades, firmas, tickets, contratos ni consentimiento
+  externo. Quien opera debe obtener y comprobar la aprobación por separado; estos campos no son prueba de ella.
+  Los campos de ejemplo de repositorio no constituyen autorización real.
 - Hostnames no se aceptan: el core requiere IP/CIDR explícitos y bloquea metadata/link-local/multicast/
   rangos reservados según ADR-004.
 - Direcciones públicas requieren `allow_public: true` tanto a nivel de scope como de target. La interfaz
@@ -63,7 +71,7 @@ servidor HTTP efímero ligado a loopback para la prueba automatizada, declara es
 alcance explícito y recorre el mismo API que consumen los botones:
 
 - `POST /api/scan` → comprueba un servicio abierto y la respuesta HTTP real (status 200/banner) más una
-  cadena de auditoría íntegra.
+  cadena hash internamente consistente (esto no prueba autoría ni completitud).
 - `POST /api/analyze` → exige hallazgos reales de `WEB-HEADER`, `WEB-BANNER` y `ADV-MATCH`; comprueba
   que el número de servicios analizados es el capturado.
 - `POST /api/report` → exige artefactos reales de más de 1 KB en Markdown/HTML/JSON, vista previa con

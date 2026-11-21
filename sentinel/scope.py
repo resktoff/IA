@@ -9,16 +9,19 @@ through :class:`ScopeGuard`.  The rules, in order of evaluation:
 2. **Validity window.** ``not_before <= now < expires_at``.  Expired
    engagements cannot be resumed by editing the clock: the scope is reloaded
    from disk on every run.
-3. **Explicit authorisation.** ``authorization.authorized`` must be ``true`` and
-   must carry a non-empty reference (ticket/contract).  A scope without it is
-   rejected at load time.
+3. **Declared authorisation.** ``authorization.authorized`` must be ``true`` and
+   must carry non-empty ``reference`` and ``approved_by`` fields. These are
+   declarations supplied in the scope; this code does not verify external
+   approval, identity, tickets, contracts, or consent. A scope without the
+   required declarations is rejected at load time.
 4. **Tier.** ``EXPLOIT`` (3) is refused unconditionally, even if the scope file
    asks for it (ADR-002).  Each target also declares its own ``max_tier``.
 5. **Target allowlist.** Default deny.  A host must match a declared target;
    the port must be in that target's port set.
-6. **Address rules.** Link-local (including cloud metadata 169.254.169.254),
-   multicast, broadcast, unspecified and reserved ranges are refused even when
-   declared.  Public addresses require two explicit opt-ins.
+6. **Address rules.** Link-local and the configured cloud metadata endpoints
+   (including `169.254.169.254` and `fd00:ec2::254`), multicast, broadcast,
+   unspecified and reserved ranges are refused even when declared. Public
+   addresses require two explicit opt-ins.
 7. **Budget and rate.** A hard request budget and a token bucket cap request
    volume, so a mis-scoped run cannot turn into a flood.
 
@@ -62,6 +65,13 @@ ALWAYS_BLOCKED_NETWORKS = (
 )
 
 METADATA_ADDRESSES = ("169.254.169.254", "fd00:ec2::254")
+
+
+def _is_metadata_address(ip: ipaddress._BaseAddress) -> bool:
+    if str(ip) in METADATA_ADDRESSES:
+        return True
+    mapped = ip.ipv4_mapped if isinstance(ip, ipaddress.IPv6Address) else None
+    return mapped is not None and str(mapped) in METADATA_ADDRESSES
 
 
 class PortSet:
@@ -174,7 +184,8 @@ class Scope:
         auth = data.get("authorization") or {}
         if auth.get("authorized") is not True:
             raise AuthorizationError(
-                "scope has no explicit authorisation (authorization.authorized must be true)"
+                "scope has no explicit authorisation (authorization.authorized must be true; "
+                "this field is not externally verified)"
             )
         ref = str(auth.get("reference") or "").strip()
         approved_by = str(auth.get("approved_by") or "").strip()
@@ -300,6 +311,13 @@ def _validate_network_target(value: str, kind: str, target_public: bool, scope_p
         if kind == "cidr":
             net = ipaddress.ip_network(value, strict=False)
             candidates = [net.network_address]
+            for metadata in METADATA_ADDRESSES:
+                metadata_ip = ipaddress.ip_address(metadata)
+                aliases = [metadata_ip]
+                if metadata_ip.version == 4:
+                    aliases.append(ipaddress.IPv6Address(f"::ffff:{metadata_ip}"))
+                if any(alias.version == net.version and alias in net for alias in aliases):
+                    raise ScopeError(f"targets[{idx}]: {value} contains blocked cloud metadata endpoint {metadata}")
             for blocked in ALWAYS_BLOCKED_NETWORKS:
                 if net.version == blocked.version and net.overlaps(blocked):
                     raise ScopeError(f"targets[{idx}]: {value} overlaps always-blocked range {blocked}")
@@ -312,7 +330,7 @@ def _validate_network_target(value: str, kind: str, target_public: bool, scope_p
         for blocked in ALWAYS_BLOCKED_NETWORKS:
             if ip.version == blocked.version and ip in blocked:
                 raise ScopeError(f"targets[{idx}]: {ip} is in always-blocked range {blocked}")
-        if str(ip) in METADATA_ADDRESSES:
+        if _is_metadata_address(ip):
             raise ScopeError(f"targets[{idx}]: cloud metadata endpoint {METADATA_ADDRESSES} is always blocked")
         if ip.is_global and not (target_public and scope_public):
             raise ScopeError(
@@ -462,7 +480,6 @@ class ScopeGuard:
         self._consume_budget(action, target_label, int(tier))
         with self._lock:
             self.stats.allowed += 1
-            self.stats.network_ops += 1
         self.audit.record(
             action, "allowed", target=target_label, tier=int(tier),
             detail={"matched_target": target.render()},
@@ -478,8 +495,12 @@ class ScopeGuard:
 
     # --------------------------------------------------------------- internals
     def _consume_budget(self, action: str, target_label: str, tier: int) -> None:
+        # Reserve the operation while holding the same lock used for the limit
+        # check. This makes the hard budget safe when callers check concurrently.
         with self._lock:
-            exhausted = self.stats.network_ops + 1 > self.scope.max_requests
+            exhausted = self.stats.network_ops >= self.scope.max_requests
+            if not exhausted:
+                self.stats.network_ops += 1
         if exhausted:
             # _deny takes the same lock, so it must be called outside it.
             self._deny(
@@ -518,6 +539,8 @@ class ScopeGuard:
                     return None
 
         for candidate in resolved:
+            if _is_metadata_address(candidate):
+                return None
             for blocked in ALWAYS_BLOCKED_NETWORKS:
                 if candidate.version == blocked.version and candidate in blocked:
                     return None

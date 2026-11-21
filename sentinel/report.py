@@ -84,7 +84,7 @@ DECISIONS = [
     ("ADR-010", "Sin enumeración remota de usuarios ni fingerprint de SO",
      "Coste/beneficio desfavorable y mayor intrusividad."),
     ("ADR-011", "Auditoría encadenada por hash y kill switch por archivo",
-     "Cada acción y cada rechazo se registran antes de ejecutarse; `touch STOP` detiene la ejecución."),
+     "La cadena verifica consistencia interna, pero no prueba autoría ni completitud; `touch STOP` detiene la ejecución."),
     ("ADR-012", "Sin secretos en el informe",
      "No se leen /etc/shadow ni cuerpos de respuesta por defecto; el renderer redacta claves sensibles."),
 ]
@@ -138,8 +138,8 @@ def build_markdown(a: Assessment) -> str:
     add(f"| Run ID | `{a.run_id}` |")
     add(f"| Modo | `{a.target_mode}` |")
     add(f"| Inicio / fin | {a.started_at} → {a.finished_at} |")
-    add(f"| Autorización | {a.scope_summary.get('authorization_ref')} (aprobada por "
-        f"{a.scope_summary.get('approved_by')}) |")
+    add(f"| Declaración de autorización (no verificada) | {a.scope_summary.get('authorization_ref')} "
+        f"(aprobador declarado: {a.scope_summary.get('approved_by')}) |")
     add(f"| Clasificación del documento | Confidencial — partes autorizadas |")
     add("")
 
@@ -174,8 +174,8 @@ def build_markdown(a: Assessment) -> str:
     add("")
     s = a.scope_summary
     add(_mk_table(["Campo", "Valor"], [
-        ["Referencia de autorización", s.get("authorization_ref", "—")],
-        ["Aprobada por", s.get("approved_by", "—")],
+        ["Referencia declarada (no verificada)", s.get("authorization_ref", "—")],
+        ["Aprobador declarado (no verificado)", s.get("approved_by", "—")],
         ["Vigencia", f"{s.get('valid_from')} → {s.get('expires_at')}"],
         ["Tier máximo permitido", str(s.get("max_tier"))],
         ["Presupuesto de peticiones", str(s.get("max_requests"))],
@@ -194,12 +194,15 @@ def build_markdown(a: Assessment) -> str:
     add("| Control | Implementación |")
     add("|---|---|")
     add("| Allowlist default-deny de hosts y puertos | `sentinel/scope.py::ScopeGuard.check` |")
-    add("| Autorización explícita obligatoria | `Scope.from_dict` rechaza alcances sin `authorized=true` |")
+    add("| Declaración de autorización requerida | `Scope.from_dict` valida campos; no verifica consentimiento externo |")
     add("| Tier 3 (explotación) inalcanzable | `Tier.EXPLOIT` rechazado antes de cualquier I/O |")
     add("| Presupuesto y rate limit | token bucket + contador duro por engagement |")
     add("| Kill switch | archivo de parada comprobado en cada acción |")
     add("| Auditoría encadenada | `sentinel/audit.py`, SHA-256 por registro |")
     add("| Redacción de secretos | `sentinel/redact.py` en el renderer |")
+    add("")
+    add("Los campos de autorización, referencia y aprobador son declaraciones del documento de alcance; "
+        "el parser no verifica consentimiento, identidad ni aprobación externa.")
     add("")
 
     add("## 3. Metodología y límites")
@@ -316,8 +319,10 @@ def build_markdown(a: Assessment) -> str:
         ["Hash de cabeza", f"`{chain.get('head')}`" if chain.get("head") else "—"],
     ]))
     add("")
-    add("Cualquier modificación, borrado o reordenamiento de registros invalida la verificación "
-        "(`python -m sentinel.cli verify-audit <archivo>`).")
+    add("La verificación comprueba los hashes y enlaces internos de los registros presentes; no garantiza "
+        "inmutabilidad, autoría ni completitud. Un truncamiento coherente de la cola o una cadena recalculada "
+        "pueden pasar sin una cabeza anclada externamente. `python -m sentinel.cli verify-audit <archivo>` "
+        "solo verifica la cadena que actualmente contiene el archivo.")
     add("")
     add("### B. Comprobaciones no ejecutadas")
     add("")
@@ -416,7 +421,7 @@ def build_html(a: Assessment) -> str:
     add(f"<p class='meta'>Engagement <code>{_e(a.engagement_id)}</code> · {_e(s.get('client', ''))} · "
         f"operador {_e(a.operator)} · run <code>{_e(a.run_id)}</code> · modo <code>{_e(a.target_mode)}</code> · "
         f"{_e(a.started_at)} → {_e(a.finished_at)}</p>")
-    add(f"<p class='meta'>Autorización: {_e(s.get('authorization_ref'))} (aprobada por "
+    add(f"<p class='meta'>Declaración de autorización (no verificada): {_e(s.get('authorization_ref'))} (aprobador declarado "
         f"{_e(s.get('approved_by'))}) · vigencia {_e(s.get('valid_from'))} → {_e(s.get('expires_at'))}</p>")
 
     add("<h2>1. Resumen ejecutivo</h2>")
@@ -436,10 +441,12 @@ def build_html(a: Assessment) -> str:
             add("<tr>" + "".join(f"<td>{c if i == 1 else _e(c)}</td>" for i, c in enumerate(r)) + "</tr>")
         add("</tbody></table>")
 
-    add("<h2>2. Autorización, alcance y controles</h2>")
+    add("<h2>2. Alcance y controles</h2>")
+    add("<p class='meta'>Los campos de autorización, referencia y aprobador son declaraciones del documento; "
+        "no se verifican consentimiento, identidad ni aprobación externa.</p>")
     add(_html_table(["Campo", "Valor"], [
-        ["Referencia de autorización", s.get("authorization_ref", "—")],
-        ["Aprobada por", s.get("approved_by", "—")],
+        ["Referencia declarada (no verificada)", s.get("authorization_ref", "—")],
+        ["Aprobador declarado (no verificado)", s.get("approved_by", "—")],
         ["Vigencia", f"{s.get('valid_from')} → {s.get('expires_at')}"],
         ["Tier máximo", s.get("max_tier")],
         ["Presupuesto de peticiones", s.get("max_requests")],
@@ -501,10 +508,13 @@ def build_html(a: Assessment) -> str:
     chain = a.audit_chain or {}
     add("<h2>7. Auditoría y anexos</h2>")
     add(f"<p>Cadena de auditoría: "
-        + (f"<span class='ok'>íntegra</span> ({chain.get('records')} registros, cabeza "
+        + (f"<span class='ok'>consistente internamente</span> ({chain.get('records')} registros, cabeza "
            f"<code>{_e((chain.get('head') or '')[:24])}…</code>)" if chain.get("ok")
            else f"<span class='bad'>FALLIDA</span> — {_e(chain.get('reason'))}")
         + f" · archivo <code>{_e(a.audit_path or '—')}</code></p>")
+    add("<p class='meta'>La cadena verifica consistencia interna de los registros presentes, no su "
+        "inmutabilidad, autoría o completitud; truncamiento coherente o recálculo pueden no detectarse "
+        "sin una cabeza retenida externamente.</p>")
     if a.skipped:
         add("<h4>Comprobaciones no ejecutadas</h4>")
         add(_html_table(["Check", "Motivo"], [[x.get("check", "?"), x.get("reason", "")] for x in a.skipped]))

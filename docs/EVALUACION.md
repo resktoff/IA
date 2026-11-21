@@ -105,7 +105,7 @@ Ninguna capacidad `partial` o `blocked` se ejecuta en la corrida; el informe las
 |---|---|
 | 1. Arquitectura del agente | [ARCHITECTURE.md](ARCHITECTURE.md) — componentes, flujo, modelo de datos, fronteras de confianza |
 | 2. Componentes y tecnologías | [ARCHITECTURE.md §3](ARCHITECTURE.md) — Python 3.10+ stdlib, cero dependencias, sin servicios externos |
-| 3. Código fuente de lo implementado | `sentinel/` (≈5.100 líneas) + `tests/` (216 tests) |
+| 3. Código fuente de lo implementado | `sentinel/` (≈5.100 líneas) + `tests/` (222 tests) |
 | 4. Capacidades no implementadas y motivos | [LIMITATIONS.md](LIMITATIONS.md) y [CAPABILITY_MATRIX.md §2](CAPABILITY_MATRIX.md) |
 | 5. Registro de decisiones de seguridad | [DECISIONS.md](DECISIONS.md) (ADR-001 … ADR-012) |
 | Verificación técnica | [VERIFICATION.md](VERIFICATION.md), `make verify`, `examples/sample/` |
@@ -115,7 +115,7 @@ Ninguna capacidad `partial` o `blocked` se ejecuta en la corrida; el informe las
 
 ```bash
 python3 -m sentinel.cli self-check --out evidence   # 30/30 controles y pipeline
-python3 -m unittest discover -s tests -t .          # 216 tests OK
+python3 -m unittest discover -s tests -t .          # 222 tests OK
 python3 -m sentinel.cli assess --scope examples/scope-local.json --mode local --out evidence
 for f in evidence/audit-*.jsonl; do python3 -m sentinel.cli verify-audit "$f"; done
 ```

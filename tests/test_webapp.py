@@ -1,12 +1,14 @@
 """Web interface integration tests against real Sentinel code and loopback HTTP."""
 from __future__ import annotations
 
+import io
 import json
 import os
 from pathlib import Path
 import threading
 import time
 import unittest
+from unittest.mock import Mock, patch
 import urllib.error
 import urllib.request
 
@@ -14,7 +16,7 @@ from sentinel.audit import AuditLog, read_records, verify_chain
 from sentinel.errors import ScopeError
 from sentinel.model import Assessment
 from sentinel.scope import Scope
-from sentinel.webapp import ScanContext, SentinelWeb, create_server
+from sentinel.webapp import ScanContext, SentinelWeb, create_server, main
 from tests.support import WeakHandler, scope_dict, start_http_server, tempdir
 
 
@@ -211,6 +213,36 @@ class TestWebBackend(unittest.TestCase):
 
 
 class TestWebLimits(unittest.TestCase):
+    def test_server_defaults_to_loopback(self) -> None:
+        server = create_server(port=0)
+        try:
+            self.assertEqual(server.server_address[0], "127.0.0.1")
+        finally:
+            server.server_close()
+
+    def test_explicit_non_loopback_host_emits_security_warning(self) -> None:
+        server = Mock()
+        server.serve_forever.side_effect = KeyboardInterrupt
+        with patch("sentinel.webapp.create_server", return_value=server), \
+             patch("sys.argv", ["sentinel-web", "--host", "0.0.0.0"]), \
+             patch("sys.stderr", new_callable=io.StringIO) as stderr, \
+             patch("sys.stdout", new_callable=io.StringIO):
+            main()
+        self.assertIn("no incluye autenticación ni TLS", stderr.getvalue())
+        server.server_close.assert_called_once()
+
+    def test_metadata_cidr_rejected_before_any_connection(self) -> None:
+        app = SentinelWeb(tempdir())
+        scope = scope_dict(targets=[{
+            "kind": "cidr", "value": "fd00:ec2::/112", "ports": [80], "max_tier": 2,
+        }])
+        with patch("sentinel.discovery.socket.create_connection") as connect:
+            with self.assertRaisesRegex(ScopeError, "metadata"):
+                app.start_scan(scope)
+            connect.assert_not_called()
+        self.assertEqual(app.operations, {})
+        self.assertEqual(app.scans, {})
+
     def test_cartesian_scan_limit_rejected_before_expansion_or_network(self) -> None:
         app = SentinelWeb(tempdir())
         scope = scope_dict(targets=[{

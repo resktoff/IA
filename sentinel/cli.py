@@ -53,7 +53,7 @@ def _cmd_assess(args: argparse.Namespace) -> int:
     print(f"HTML       : {paths['html']}")
     print(f"JSON       : {paths['json']}")
     chain = a.audit_chain or {}
-    print(f"Auditoría  : {a.audit_path} ({'íntegra' if chain.get('ok') else 'FALLIDA'}, "
+    print(f"Auditoría  : {a.audit_path} ({'consistente internamente' if chain.get('ok') else 'FALLIDA'}, "
           f"{chain.get('records')} registros)")
     return 0
 
@@ -114,7 +114,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--top", type=int, default=15)
     p.set_defaults(func=_cmd_assess)
 
-    p = sub.add_parser("verify-audit", help="verifica la integridad de una cadena de auditoría")
+    p = sub.add_parser("verify-audit", help="comprueba la consistencia interna (no autoría ni completitud) de una cadena")
     p.add_argument("file")
     p.set_defaults(func=_cmd_verify_audit)
 
