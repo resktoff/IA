@@ -1,0 +1,331 @@
+<!doctype html><html lang='es'><head><meta charset='utf-8'>
+<title>Informe de evaluación — LAB-HOST-2026-11</title>
+<style>
+:root { color-scheme: light; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+       margin: 0; padding: 32px; background: #f6f7f9; color: #16181d; line-height: 1.55; }
+main { max-width: 1040px; margin: 0 auto; background: #fff; padding: 40px 48px;
+       box-shadow: 0 1px 3px rgba(0,0,0,.12); border-radius: 8px; }
+h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.02em; }
+h2 { font-size: 20px; margin-top: 40px; border-bottom: 1px solid #e6e8ec; padding-bottom: 6px; }
+h3 { font-size: 16px; margin-top: 28px; }
+h4 { font-size: 15px; margin: 24px 0 8px; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0 20px; font-size: 13.5px; }
+th, td { border: 1px solid #e6e8ec; padding: 7px 10px; text-align: left; vertical-align: top; }
+th { background: #f2f4f7; font-weight: 600; }
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+pre { background: #f6f7f9; padding: 12px 14px; border-radius: 6px; overflow-x: auto;
+      border: 1px solid #e6e8ec; max-height: 420px; }
+.sev { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11.5px;
+       font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+.sev-critical { background: #fde2e1; color: #8a1c1c; }
+.sev-high { background: #ffe8d5; color: #8a4b12; }
+.sev-medium { background: #fff4cc; color: #6b5300; }
+.sev-low { background: #e3f0ff; color: #1c4a8a; }
+.sev-none { background: #eceff3; color: #47505c; }
+.meta { color: #5b6472; font-size: 13px; }
+.note { background: #fff8e6; border-left: 3px solid #d9a300; padding: 10px 14px; margin: 14px 0; font-size: 13.5px; }
+.ok { color: #146c2e; font-weight: 600; }
+.bad { color: #8a1c1c; font-weight: 600; }
+.blocked { background: #f2f4f7; border-left: 3px solid #47505c; padding: 10px 14px; margin: 12px 0; }
+.pill { display: inline-block; border: 1px solid #d5d9e0; border-radius: 999px; padding: 0 8px;
+        font-size: 11.5px; color: #47505c; }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #e6e8ec; color: #5b6472; font-size: 12.5px; }
+@media print { body { background: #fff; padding: 0; } main { box-shadow: none; padding: 0; } }
+</style></head><body><main>
+<h1>Informe técnico de evaluación de seguridad</h1>
+<p class='meta'>Engagement <code>LAB-HOST-2026-11</code> · Laboratorio interno (host del analista) · operador analista@example.invalid · run <code>0a5602cb054a</code> · modo <code>local_host</code> · 2026-11-21T12:42:23+00:00 → 2026-11-21T12:42:23+00:00</p>
+<p class='meta'>Autorización: LAB-AUTH-2026-11-001 (aprobada por responsable de plataforma) · vigencia 2026-11-01T00:00:00+00:00 → 2026-12-15T23:59:59+00:00</p>
+<h2>1. Resumen ejecutivo</h2>
+<p><strong>14 hallazgos</strong> sobre 1 activos: 2 crítico, 1 alto, 4 medio, 7 bajo.</p>
+<div class='note'><strong>Alcance de la evidencia.</strong> Solo los hallazgos con confianza «confirmado» se basan en estado observado. Las coincidencias CVE por versión son inferencias y las rutas de escalamiento son hipótesis sin validar. No se envió ningún exploit ni credencial.</div>
+<table><thead><tr><th>ID</th><th>Severidad</th><th>CVSS</th><th>Confianza</th><th>Hallazgo</th><th>Activo</th></tr><tbody>
+<tr><td>F-3a49dc4e85</td><td><span class="sev sev-critical">CRÍTICO</span></td><td>9.8 (estimado)</td><td>confirmado</td><td>SSH permite cuentas con contraseña vacía</td><td>e2b.local</td></tr>
+<tr><td>F-dd53f91e13</td><td><span class="sev sev-high">ALTO</span></td><td>8.1 (estimado)</td><td>confirmado</td><td>SSH permite inicio de sesión de root (yes)</td><td>e2b.local</td></tr>
+<tr><td>F-ad1a12758b</td><td><span class="sev sev-critical">CRÍTICO</span></td><td>—</td><td>confirmado</td><td>La cuenta &#x27;user&#x27; puede ejecutar cualquier comando como ALL, ALL : ALL sin contraseña</td><td>e2b.local</td></tr>
+<tr><td>F-8e6abeb538</td><td><span class="sev sev-medium">MEDIO</span></td><td>—</td><td>confirmado</td><td>Longitud mínima de contraseña ausente o insuficiente</td><td>e2b.local</td></tr>
+<tr><td>F-cbdab8ad02</td><td><span class="sev sev-medium">MEDIO</span></td><td>—</td><td>hipótesis</td><td>Directorio del PATH escribible por el usuario: /usr/local/bin</td><td>e2b.local</td></tr>
+<tr><td>F-4f04760da9</td><td><span class="sev sev-medium">MEDIO</span></td><td>—</td><td>hipótesis</td><td>Directorio del PATH escribible por el usuario: /usr/local/games</td><td>e2b.local</td></tr>
+<tr><td>F-cf6bf87d9e</td><td><span class="sev sev-medium">MEDIO</span></td><td>—</td><td>confirmado</td><td>SSH acepta autenticación por contraseña</td><td>e2b.local</td></tr>
+<tr><td>F-26e715c6ad</td><td><span class="sev sev-low">BAJO</span></td><td>—</td><td>confirmado</td><td>Sin política de calidad de contraseñas activa (pwquality)</td><td>e2b.local</td></tr>
+</tbody></table>
+<h2>2. Autorización, alcance y controles</h2>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Referencia de autorización</td><td>LAB-AUTH-2026-11-001</td></tr><tr><td>Aprobada por</td><td>responsable de plataforma</td></tr><tr><td>Vigencia</td><td>2026-11-01T00:00:00+00:00 → 2026-12-15T23:59:59+00:00</td></tr><tr><td>Tier máximo</td><td>1</td></tr><tr><td>Presupuesto de peticiones</td><td>50</td></tr><tr><td>Tasa máxima</td><td>5.0 req/s</td></tr><tr><td>Kill switch</td><td>STOP</td></tr></tbody></table>
+<table><thead><tr><th>Tipo</th><th>Objetivo</th><th>Puertos</th><th>Tier máx.</th></tr></thead><tbody><tr><td>local_host</td><td>self</td><td>65000</td><td>1</td></tr></tbody></table>
+<p class='meta'>Controles implementados: allowlist default-deny, autorización explícita, Tier 3 inalcanzable, rate limit + presupuesto, kill switch, auditoría encadenada, redacción de secretos.</p>
+<h2>3. Cobertura de capacidades</h2>
+<table><thead><tr><th>ID</th><th>Capacidad</th><th>Estado</th><th>Ejercitada</th><th>Detalle</th></tr></thead><tbody>
+<tr><td>CAP-1</td><td>Identificación de activos y servicios expuestos</td><td class='ok'>implemented</td><td>sí</td><td>Inventario local (identidad, SO, cuentas, configuración, permisos). El descubrimiento de red (Tier 2) no se ejecutó en este modo.</td></tr>
+<tr><td>CAP-2</td><td>Detección de vulnerabilidades y clasificación por criticidad</td><td class='ok'>implemented</td><td>sí</td><td>Correlación versión-&gt;aviso contra un subconjunto curado y cálculo CVSS v3.1 base propio. Es inferencia por versión, no validACIÓN de explotabilidad.</td></tr>
+<tr><td>CAP-3</td><td>Evaluación de configuraciones y vectores de ataque</td><td class='ok'>implemented</td><td>sí</td><td>Reglas deterministas sobre sshd_config, cabeceras HTTP, TLS, PAM/pwquality y permisos de archivos</td></tr>
+<tr><td>CAP-4</td><td>Análisis de posibilidades de escalamiento de privilegios</td><td class='meta'>partial</td><td>sí</td><td>Enumeración y clasificación de sudo/SUID/capabilities/cron/systemd/PATH con hipótesis y prerrequisitos. No se ejecuta ningún binario ni comando privilegiado: no hay validación ni explotación (ADR-006).</td></tr>
+<tr><td>CAP-5</td><td>Resistencia de mecanismos de autenticación y protección</td><td class='meta'>partial</td><td>sí</td><td>Análisis de política (longitud, hash, caducidad, pwquality, permisos de shadow/sudoers) y de cookies/atributos. Sin envío de credenciales ni pruebas de bloqueo (ADR-005).</td></tr>
+<tr><td>CAP-6</td><td>Informes técnicos con evidencias, impacto y recomendaciones</td><td class='ok'>implemented</td><td>sí</td><td>Markdown + HTML autocontenido + JSON, con digest SHA-256 por evidencia y cadena de auditoría verificada</td></tr>
+<tr><td>CAP-7</td><td>Explotación efectiva y post-explotación</td><td class='bad'>blocked</td><td><strong>no</strong></td><td>No implementado por diseño (ADR-002): sin payloads, sin entrega de exploits, sin persistencia</td></tr>
+</tbody></table>
+<h2>4. Hallazgos</h2>
+<h3>F-3a49dc4e85 — SSH permite cuentas con contraseña vacía</h3>
+<p><span class="sev sev-critical">CRÍTICO</span> <span class='pill'>CVSS 9.8 (estimado)</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>ssh_hardening</td></tr><tr><td>Vector CVSS</td><td>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</td></tr><tr><td>Check</td><td>SSH-EMPTY-PW</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Cualquier cuenta sin contraseña puede autenticarse por SSH sin credenciales; el acceso resultante es interactivo y hereda los privilegios de la cuenta.</p>
+<p><strong>Recomendación.</strong> Establecer `PermitEmptyPasswords no` y auditar cuentas con hash vacío en /etc/shadow.</p>
+<div class='note'>`PermitEmptyPasswords yes` en /etc/ssh/sshd_config:124</div>
+<h4>Evidencia · <code>config_directive</code></h4>
+<p class='meta'>`PermitEmptyPasswords yes` en /etc/ssh/sshd_config:124 · fuente <code>checks.ssh</code> · sha256 <code>3f0303dd89147222b492ab9bdf70cbbdc2acaaca…</code></p>
+<pre>{
+  &quot;directive&quot;: &quot;PermitEmptyPasswords&quot;,
+  &quot;effective_value&quot;: &quot;yes&quot;,
+  &quot;from_default&quot;: false,
+  &quot;source&quot;: &quot;/etc/ssh/sshd_config:124&quot;,
+  &quot;config_file_present&quot;: true
+}</pre>
+<p class='meta'>Referencias: https://www.ssh.com/academy/ssh/sshd_config · https://cisecurity.org/controls</p>
+<h3>F-dd53f91e13 — SSH permite inicio de sesión de root (yes)</h3>
+<p><span class="sev sev-high">ALTO</span> <span class='pill'>CVSS 8.1 (estimado)</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>ssh_hardening</td></tr><tr><td>Vector CVSS</td><td>CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H</td></tr><tr><td>Check</td><td>SSH-ROOT-LOGIN</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Un login directo de root elimina la trazabilidad por usuario y convierte cualquier credencial o clave comprometida en control administrativo total.</p>
+<p><strong>Recomendación.</strong> `PermitRootLogin no`; usar cuentas nominales y `sudo` con registro de auditoría.</p>
+<div class='note'>`PermitRootLogin yes` en /etc/ssh/sshd_config:123</div>
+<h4>Evidencia · <code>config_directive</code></h4>
+<p class='meta'>`PermitRootLogin yes` en /etc/ssh/sshd_config:123 · fuente <code>checks.ssh</code> · sha256 <code>0f1b458c482502d5714f7a1ec665b5cfa2bfb863…</code></p>
+<pre>{
+  &quot;directive&quot;: &quot;PermitRootLogin&quot;,
+  &quot;effective_value&quot;: &quot;yes&quot;,
+  &quot;from_default&quot;: false,
+  &quot;source&quot;: &quot;/etc/ssh/sshd_config:123&quot;,
+  &quot;config_file_present&quot;: true
+}</pre>
+<p class='meta'>Referencias: https://www.ssh.com/academy/ssh/sshd_config · https://cisecurity.org/controls</p>
+<h3>F-ad1a12758b — La cuenta &#x27;user&#x27; puede ejecutar cualquier comando como ALL, ALL : ALL sin contraseña</h3>
+<p><span class="sev sev-critical">CRÍTICO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>privilege_escalation</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>PRIV-SUDO-ALL</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> No existe una frontera de privilegios que escalar para esta cuenta: ya es administrativa. El riesgo relevante es que una credencial de esta cuenta comprometida otorga control total, y NOPASSWD la hace utilizable sin segundo factor ni interacción.</p>
+<p><strong>Recomendación.</strong> Sustituir las reglas `ALL` por comandos concretos, eliminar NOPASSWD, habilitar MFA en sudo (pam_google_authenticator) y registrar la sesión (`log_output`) en un destino remoto.</p>
+<div class='note'>Hecho observado, no vulnerabilidad: describe el nivel de privilegio de la cuenta con la que corre la evaluación. Es la línea base contra la que se miden las demás hipótesis.</div>
+<h4>Evidencia · <code>sudo_policy</code></h4>
+<p class='meta'>evidencia sudo_policy · fuente <code>privesc</code> · sha256 <code>fd1c1917bffc15b6949bd816ff3bc0c4b6c6b69c…</code></p>
+<pre>{
+  &quot;identity&quot;: &quot;user&quot;,
+  &quot;rules&quot;: [
+    {
+      &quot;runas&quot;: &quot;ALL : ALL&quot;,
+      &quot;command&quot;: &quot;ALL&quot;,
+      &quot;nopasswd&quot;: &quot;[REDACTED]&quot;,
+      &quot;all&quot;: true
+    },
+    {
+      &quot;runas&quot;: &quot;ALL : ALL&quot;,
+      &quot;command&quot;: &quot;ALL&quot;,
+      &quot;nopasswd&quot;: &quot;[REDACTED]&quot;,
+      &quot;all&quot;: true
+    },
+    {
+      &quot;runas&quot;: &quot;ALL&quot;,
+      &quot;command&quot;: &quot;ALL&quot;,
+      &quot;nopasswd&quot;: &quot;[REDACTED]&quot;,
+      &quot;all&quot;: true
+    },
+    {
+      &quot;runas&quot;: &quot;ALL : ALL&quot;,
+      &quot;command&quot;: &quot;ALL&quot;,
+      &quot;nopasswd&quot;: &quot;[REDACTED]&quot;,
+      &quot;all&quot;: true
+    }
+  ],
+  &quot;normalised&quot;: [
+    &quot;(ALL : ALL) ALL&quot;,
+    &quot;(ALL : ALL) NOPASSWD: ALL&quot;,
+    &quot;(ALL) NOPASSWD: ALL&quot;,
+    &quot;(ALL : ALL) NOPASSWD: ALL&quot;
+  ],
+  &quot;raw_listing&quot;: &quot;Matching Defaults entries for user on e2b:\n    env_reset, mail_badpass, secure_path=/usr/local/sbin\\:/usr/local/bin\\:/usr/sbin\\:/usr/bin\\:/sbin\\:/bin, use_pty\n\nUser user may run the following commands on e2b:\n    (ALL : ALL) ALL\n    (ALL : ALL) NOPASSWD: ALL\n    (ALL) NOPASSWD: ALL\n    (ALL : ALL) NOPASSWD: ALL&quot;
+}</pre>
+<p class='meta'>Referencias: https://www.sudo.ws/docs/man/sudoers.man/</p>
+<h3>F-8e6abeb538 — Longitud mínima de contraseña ausente o insuficiente</h3>
+<p><span class="sev sev-medium">MEDIO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>authentication</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>AUTH-PW-MINLEN</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Sin un mínimo efectivo, el espacio de búsqueda de credenciales se reduce a valores triviales. NIST SP 800-63B exige ≥8 y recomienda ≥12 para cuentas con privilegios; el valor no está definido en login.defs ni en pwquality.</p>
+<p><strong>Recomendación.</strong> Definir `minlen = 12` en /etc/security/pwquality.conf (que prevalece sobre login.defs) y bloquear contraseñas filtradas contra una lista de brechas.</p>
+<h4>Evidencia · <code>password_policy</code></h4>
+<p class='meta'>evidencia password_policy · fuente <code>auth</code> · sha256 <code>ad95369f510d23dc7a30c385637f31d5136d0be4…</code></p>
+<pre>{
+  &quot;PASS_MIN_LEN&quot;: &quot;[REDACTED]&quot;,
+  &quot;pwquality_present&quot;: false,
+  &quot;source&quot;: &quot;/etc/login.defs&quot;
+}</pre>
+<p class='meta'>Referencias: https://pages.nist.gov/800-63-3/sp800-63b.html#password</p>
+<h3>F-cbdab8ad02 — Directorio del PATH escribible por el usuario: /usr/local/bin</h3>
+<p><span class="sev sev-medium">MEDIO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: hipótesis</span> <span class='pill'>validación: no validado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>privilege_escalation</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>PRIV-PATH-WRITABLE</td></tr><tr><td>Prerrequisitos</td><td>un proceso privilegiado resuelve comandos a través del PATH</td></tr><tr><td>Validación manual</td><td>sí</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Si un script privilegiado invoca un binario por nombre sin ruta absoluta, se puede interceptar colocando un ejecutable en este directorio.</p>
+<p><strong>Recomendación.</strong> Retirar directorios escribibles del PATH de root y de los servicios; usar rutas absolutas en scripts privilegiados.</p>
+<h4>Evidencia · <code>path_permissions</code></h4>
+<p class='meta'>evidencia path_permissions · fuente <code>privesc</code> · sha256 <code>a11b69f717afd4ec863016f16c747763aa23554f…</code></p>
+<pre>{
+  &quot;path&quot;: &quot;/usr/local/bin&quot;,
+  &quot;present&quot;: true,
+  &quot;mode&quot;: &quot;drwxrwxrwx&quot;,
+  &quot;mode_octal&quot;: &quot;0o777&quot;,
+  &quot;uid&quot;: 0,
+  &quot;gid&quot;: 0,
+  &quot;owner&quot;: &quot;root&quot;,
+  &quot;group&quot;: &quot;root&quot;,
+  &quot;is_symlink&quot;: false,
+  &quot;symlink_target&quot;: null,
+  &quot;other_write&quot;: true,
+  &quot;other_read&quot;: true,
+  &quot;world_writable&quot;: true,
+  &quot;writable_by_current_user&quot;: 2
+}</pre>
+<h3>F-4f04760da9 — Directorio del PATH escribible por el usuario: /usr/local/games</h3>
+<p><span class="sev sev-medium">MEDIO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: hipótesis</span> <span class='pill'>validación: no validado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>privilege_escalation</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>PRIV-PATH-WRITABLE</td></tr><tr><td>Prerrequisitos</td><td>un proceso privilegiado resuelve comandos a través del PATH</td></tr><tr><td>Validación manual</td><td>sí</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Si un script privilegiado invoca un binario por nombre sin ruta absoluta, se puede interceptar colocando un ejecutable en este directorio.</p>
+<p><strong>Recomendación.</strong> Retirar directorios escribibles del PATH de root y de los servicios; usar rutas absolutas en scripts privilegiados.</p>
+<h4>Evidencia · <code>path_permissions</code></h4>
+<p class='meta'>evidencia path_permissions · fuente <code>privesc</code> · sha256 <code>54cf1ff327edecdd97d4a25e9c80bb27d905cbb4…</code></p>
+<pre>{
+  &quot;path&quot;: &quot;/usr/local/games&quot;,
+  &quot;present&quot;: true,
+  &quot;mode&quot;: &quot;drwxrwxrwx&quot;,
+  &quot;mode_octal&quot;: &quot;0o777&quot;,
+  &quot;uid&quot;: 0,
+  &quot;gid&quot;: 0,
+  &quot;owner&quot;: &quot;root&quot;,
+  &quot;group&quot;: &quot;root&quot;,
+  &quot;is_symlink&quot;: false,
+  &quot;symlink_target&quot;: null,
+  &quot;other_write&quot;: true,
+  &quot;other_read&quot;: true,
+  &quot;world_writable&quot;: true,
+  &quot;writable_by_current_user&quot;: 2
+}</pre>
+<h3>F-cf6bf87d9e — SSH acepta autenticación por contraseña</h3>
+<p><span class="sev sev-medium">MEDIO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>ssh_hardening</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>SSH-PASSWORD-AUTH</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Habilita ataques de fuerza bruta y reutilización de credenciales desde cualquier red con alcance al puerto; la resistencia depende por completo de la política de contraseñas.</p>
+<p><strong>Recomendación.</strong> Migrar a claves o certificados SSH, o al menos exigir MFA y limitar `AllowUsers`/`Match Address`.</p>
+<div class='note'>`PasswordAuthentication yes` en /etc/ssh/sshd_config:125</div>
+<h4>Evidencia · <code>config_directive</code></h4>
+<p class='meta'>`PasswordAuthentication yes` en /etc/ssh/sshd_config:125 · fuente <code>checks.ssh</code> · sha256 <code>d0eafce731418a638f3f985497234a7110328d00…</code></p>
+<pre>{
+  &quot;directive&quot;: &quot;PasswordAuthentication&quot;,
+  &quot;effective_value&quot;: &quot;yes&quot;,
+  &quot;from_default&quot;: false,
+  &quot;source&quot;: &quot;/etc/ssh/sshd_config:125&quot;,
+  &quot;config_file_present&quot;: true
+}</pre>
+<p class='meta'>Referencias: https://www.ssh.com/academy/ssh/sshd_config · https://cisecurity.org/controls</p>
+<h3>F-26e715c6ad — Sin política de calidad de contraseñas activa (pwquality)</h3>
+<p><span class="sev sev-low">BAJO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>authentication</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>AUTH-PW-COMPLEXITY</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> No hay verificación de longitud, diccionario ni repetición en el cambio de contraseña, de modo que la política declarada no se aplica en la práctica.</p>
+<p><strong>Recomendación.</strong> Instalar/activar `pam_pwquality.so` en /etc/pam.d/common-password con minlen ≥12, `dictcheck=1` y `maxrepeat=3`.</p>
+<h4>Evidencia · <code>password_policy</code></h4>
+<p class='meta'>evidencia password_policy · fuente <code>auth</code> · sha256 <code>3c0e630303735d431bfeac9f389e51bcc1d0e74f…</code></p>
+<pre>{
+  &quot;pwquality_readable&quot;: false,
+  &quot;minlen&quot;: null
+}</pre>
+<h3>F-0f6811fda1 — Las contraseñas no expiran (PASS_MAX_DAYS=99999)</h3>
+<p><span class="sev sev-low">BAJO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>authentication</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>AUTH-PW-MAXAGE</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Una credencial comprometida permanece válida indefinidamente. NIST no exige rotación periódica, pero solo si existe detección de compromiso; sin ella, la ausencia de caducidad amplía la ventana de uso de credenciales filtradas.</p>
+<p><strong>Recomendación.</strong> Alinear con la política corporativa: mantener sin caducidad forzada solo si hay verificación de contraseñas filtradas y MFA; en caso contrario, fijar PASS_MAX_DAYS ≤ 365.</p>
+<h4>Evidencia · <code>password_policy</code></h4>
+<p class='meta'>evidencia password_policy · fuente <code>auth</code> · sha256 <code>44d1f7a7cb9fee7d1c503b2ad580a53076b67d08…</code></p>
+<pre>{
+  &quot;PASS_MAX_DAYS&quot;: &quot;[REDACTED]&quot;
+}</pre>
+<p class='meta'>Referencias: https://pages.nist.gov/800-63-3/sp800-63b.html#password</p>
+<h3>F-a4ffe3e6cd — Cuentas de sistema con shell interactivo: sync</h3>
+<p><span class="sev sev-low">BAJO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>authentication</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>AUTH-SERVICE-SHELL</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Amplía las cuentas utilizables para autenticación interactiva y para movimiento lateral si se compromete un servicio.</p>
+<p><strong>Recomendación.</strong> Fijar `/usr/sbin/nologin` en las cuentas de servicio que no requieran shell.</p>
+<h4>Evidencia · <code>accounts</code></h4>
+<p class='meta'>evidencia accounts · fuente <code>auth</code> · sha256 <code>1ea4d72c6f80a4db5b11b3f401fa79ee36332c83…</code></p>
+<pre>{
+  &quot;accounts&quot;: [
+    &quot;sync&quot;
+  ]
+}</pre>
+<h3>F-8f4c5c304e — Reenvío del agente SSH habilitado (default)</h3>
+<p><span class="sev sev-low">BAJO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>ssh_hardening</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>SSH-AGENT-FORWARD</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Cada sesión reenviada expone el socket del agente a la máquina remota; es la precondición de CVE-2023-38408 y de robo de identidad de clave en hosts comprometidos.</p>
+<p><strong>Recomendación.</strong> `AllowAgentForwarding no` y usar `ProxyJump` en lugar de reenvío de agente.</p>
+<div class='note'>`AllowAgentForwarding` no está definido; se aplica el valor por defecto de OpenSSH (yes)</div>
+<h4>Evidencia · <code>config_directive</code></h4>
+<p class='meta'>`AllowAgentForwarding` no está definido; se aplica el valor por defecto de OpenSSH (yes) · fuente <code>checks.ssh</code> · sha256 <code>e0bbfbdb06d827df2923092d3fafc432de8a3ea8…</code></p>
+<pre>{
+  &quot;directive&quot;: &quot;AllowAgentForwarding&quot;,
+  &quot;effective_value&quot;: &quot;yes&quot;,
+  &quot;from_default&quot;: true,
+  &quot;source&quot;: &quot;compiled default&quot;,
+  &quot;config_file_present&quot;: true
+}</pre>
+<p class='meta'>Referencias: https://www.ssh.com/academy/ssh/sshd_config · https://cisecurity.org/controls</p>
+<h3>F-f04daa1482 — MaxAuthTries=6 permite demasiados intentos por conexión</h3>
+<p><span class="sev sev-low">BAJO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>ssh_hardening</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>SSH-MAX-AUTH</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Más intentos por conexión reducen el coste de la fuerza bruta y retrasan el bloqueo.</p>
+<p><strong>Recomendación.</strong> `MaxAuthTries 3` y `MaxStartups 10:30:60`; complementar con fail2ban o equivalente.</p>
+<div class='note'>`MaxAuthTries` no está definido; se aplica el valor por defecto de OpenSSH (6)</div>
+<h4>Evidencia · <code>config_directive</code></h4>
+<p class='meta'>`MaxAuthTries` no está definido; se aplica el valor por defecto de OpenSSH (6) · fuente <code>checks.ssh</code> · sha256 <code>029cc8a9573e6bb1a8ce4d72f58be0e584d2bb42…</code></p>
+<pre>{
+  &quot;directive&quot;: &quot;MaxAuthTries&quot;,
+  &quot;effective_value&quot;: &quot;6&quot;,
+  &quot;from_default&quot;: true,
+  &quot;source&quot;: &quot;compiled default&quot;,
+  &quot;config_file_present&quot;: true,
+  &quot;max_auth_tries&quot;: 6
+}</pre>
+<p class='meta'>Referencias: https://www.ssh.com/academy/ssh/sshd_config · https://cisecurity.org/controls</p>
+<h3>F-aa5acc3b58 — Sin AllowUsers/AllowGroups: cualquier cuenta válida puede autenticarse</h3>
+<p><span class="sev sev-low">BAJO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>ssh_hardening</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>SSH-NO-ALLOWLIST</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> No existe una segunda barrera de autorización: una cuenta de servicio con shell y credencial filtrada obtiene acceso SSH.</p>
+<p><strong>Recomendación.</strong> Declarar `AllowGroups ssh-operators` (o `AllowUsers`) y mantener las cuentas de servicio con shell `nologin`.</p>
+<div class='note'>`AllowUsers` no está definido; se aplica el valor por defecto de OpenSSH (n/d)</div>
+<h4>Evidencia · <code>config_directive</code></h4>
+<p class='meta'>`AllowUsers` no está definido; se aplica el valor por defecto de OpenSSH (n/d) · fuente <code>checks.ssh</code> · sha256 <code>f5f8478a73410c5f2bb492c80daf673e31101141…</code></p>
+<pre>{
+  &quot;directive&quot;: &quot;AllowUsers&quot;,
+  &quot;effective_value&quot;: &quot;&quot;,
+  &quot;from_default&quot;: true,
+  &quot;source&quot;: &quot;compiled default&quot;,
+  &quot;config_file_present&quot;: true
+}</pre>
+<p class='meta'>Referencias: https://www.ssh.com/academy/ssh/sshd_config · https://cisecurity.org/controls</p>
+<h3>F-02f4e592c4 — SSH permite reenvío de X11</h3>
+<p><span class="sev sev-low">BAJO</span> <span class='pill'>CVSS —</span> <span class='pill'>confianza: confirmado</span> <span class='pill'>validación: observado</span></p>
+<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td>Activo</td><td>e2b.local</td></tr><tr><td>Categoría</td><td>ssh_hardening</td></tr><tr><td>Vector CVSS</td><td>—</td></tr><tr><td>Check</td><td>SSH-X11-FORWARD</td></tr><tr><td>Prerrequisitos</td><td>—</td></tr><tr><td>Validación manual</td><td>no</td></tr></tbody></table>
+<p><strong>Impacto.</strong> Amplía la superficie de ataque del canal SSH (proxy X11, DISPLAY spoofing) sin ser necesario en servidores.</p>
+<p><strong>Recomendación.</strong> `X11Forwarding no` salvo requisito explícito.</p>
+<div class='note'>`X11Forwarding yes` en /etc/ssh/sshd_config:90</div>
+<h4>Evidencia · <code>config_directive</code></h4>
+<p class='meta'>`X11Forwarding yes` en /etc/ssh/sshd_config:90 · fuente <code>checks.ssh</code> · sha256 <code>93f35bd5b195d26803d00547e7b314731eab33a9…</code></p>
+<pre>{
+  &quot;directive&quot;: &quot;X11Forwarding&quot;,
+  &quot;effective_value&quot;: &quot;yes&quot;,
+  &quot;from_default&quot;: false,
+  &quot;source&quot;: &quot;/etc/ssh/sshd_config:90&quot;,
+  &quot;config_file_present&quot;: true
+}</pre>
+<p class='meta'>Referencias: https://www.ssh.com/academy/ssh/sshd_config · https://cisecurity.org/controls</p>
+<h2>5. Capacidades no implementadas</h2>
+<div class='blocked'><strong>Explotación de vulnerabilidades</strong> <span class='pill'>ADR-002</span><br><span class='meta'>Entrega de payloads, weaponización de PoCs, bypass de mitigaciones y post-explotación. Convierte el entregable en una herramienta de intrusión reutilizable y no es necesario para el objetivo de evaluación.</span></div>
+<div class='blocked'><strong>Ataques de credenciales</strong> <span class='pill'>ADR-005</span><br><span class='meta'>Fuerza bruta, password spraying, prueba de credenciales por defecto y prueba de bloqueo por fallos deliberados. Cambia el estado del servidor y puede dejar cuentas reales bloqueadas.</span></div>
+<div class='blocked'><strong>Validación activa de escalamiento de privilegios</strong> <span class='pill'>ADR-006</span><br><span class='meta'>Ejecución de binarios SUID vulnerables, comandos sudo o unidades systemd creadas por el agente. Se entrega la hipótesis con prerrequisitos y se delega la validación al operador en laboratorio.</span></div>
+<div class='blocked'><strong>Detección de versiones TLS heredadas por downgrade</strong> <span class='pill'>ADR-009</span><br><span class='meta'>Probar TLS 1.0/1.1 requiere bajar el nivel de seguridad de OpenSSL en todo el proceso. Se reporta solo la versión negociada observada.</span></div>
+<div class='blocked'><strong>Enumeración de usuarios remota y fingerprinting de SO</strong> <span class='pill'>ADR-010</span><br><span class='meta'>Aumenta el ruido y la intrusividad sin mejorar la decisión de remediación; se prioriza la evidencia de configuración.</span></div>
+<h2>6. Registro de decisiones de seguridad</h2>
+<table><thead><tr><th>ADR</th><th>Decisión</th><th>Consecuencia</th></tr></thead><tbody><tr><td>ADR-001</td><td>Default deny con allowlist de alcance y autorización explícita</td><td>Toda acción requiere engagement válido, referencia de autorización y host/puerto declarados.</td></tr><tr><td>ADR-002</td><td>Tier 3 (explotación) bloqueado en código, no en documentación</td><td>`Tier.EXPLOIT` se rechaza aunque el archivo de alcance lo pida; el alcance se degrada al cargar.</td></tr><tr><td>ADR-003</td><td>Un solo tipo de escaneo: TCP connect</td><td>Sin sockets crudos ni SYN scan: el escaneo queda registrado por el objetivo y no sirve como scanner stealth.</td></tr><tr><td>ADR-004</td><td>Rangos públicos y metadatos cloud bloqueados sin doble opt-in</td><td>169.254.0.0/16, multicast, reservados y direcciones globales quedan fuera salvo flag explícito por target y por scope.</td></tr><tr><td>ADR-005</td><td>Sin ataques de credenciales</td><td>La superficie existe y lanza `CapabilityBlocked`; el análisis se limita a política y atributos observados.</td></tr><tr><td>ADR-006</td><td>Privilegios: hipótesis, no exploits</td><td>Se publica clase de técnica y prerrequisitos; no se incluyen secuencias de comandos ni payloads.</td></tr><tr><td>ADR-007</td><td>CVSS v3.1 solo base</td><td>Sin métricas temporales ni ambientales: no se dispone de madurez de exploit ni de criticidad del activo.</td></tr><tr><td>ADR-008</td><td>Vectores CVSS de configuración marcados como estimados</td><td>Los hallazgos sin CVE llevan vector elegido por el agente y se rotulan `(estimado)`.</td></tr><tr><td>ADR-009</td><td>Sin downgrade de TLS</td><td>No se baja el security level de OpenSSL; se reporta la versión negociada y se documenta el límite.</td></tr><tr><td>ADR-010</td><td>Sin enumeración remota de usuarios ni fingerprint de SO</td><td>Coste/beneficio desfavorable y mayor intrusividad.</td></tr><tr><td>ADR-011</td><td>Auditoría encadenada por hash y kill switch por archivo</td><td>Cada acción y cada rechazo se registran antes de ejecutarse; `touch STOP` detiene la ejecución.</td></tr><tr><td>ADR-012</td><td>Sin secretos en el informe</td><td>No se leen /etc/shadow ni cuerpos de respuesta por defecto; el renderer redacta claves sensibles.</td></tr></tbody></table>
+<h2>7. Auditoría y anexos</h2>
+<p>Cadena de auditoría: <span class='ok'>íntegra</span> (13 registros, cabeza <code>6cd82b1165177d84050ffa83…</code>) · archivo <code>examples/sample/audit-LAB-HOST-2026-11-0a5602cb054a.jsonl</code></p>
+<h4>Comprobaciones no ejecutadas</h4>
+<table><thead><tr><th>Check</th><th>Motivo</th></tr></thead><tbody><tr><td>CAP-1.network</td><td>modo local: no se abrieron conexiones TCP (el objetivo elegido es el propio host)</td></tr></tbody></table>
+<footer>Generado por <code>sentinel</code>. Las capacidades <code>partial</code> y <code>blocked</code> no se ejecutaron. Este informe no certifica la ausencia de vulnerabilidades.</footer>
+</main></body></html>

@@ -1,0 +1,28 @@
+{
+  "schema": "sentinel.scope/1",
+  "engagement_id": "LAB-HOST-2026-11",
+  "client": "Laboratorio interno (host del analista)",
+  "operator": "analista@example.invalid",
+  "authorization": {
+    "authorized": true,
+    "reference": "LAB-AUTH-2026-11-001",
+    "approved_by": "responsable de plataforma",
+    "scope_note": "Evaluación de configuración del propio host del analista, sin tráfico de red saliente."
+  },
+  "valid_from": "2026-11-01T00:00:00Z",
+  "expires_at": "2026-12-15T23:59:59Z",
+  "targets": [
+    {
+      "kind": "local_host",
+      "value": "self",
+      "ports": [65000],
+      "max_tier": 1,
+      "note": "Tier 1: solo lectura de configuración y hechos locales. No se abre ningún puerto."
+    }
+  ],
+  "max_requests": 50,
+  "rate_per_second": 5,
+  "burst": 5,
+  "killswitch_path": "STOP",
+  "notes": "Alcance de demostración. En un engagement real se declaran hosts/CIDR y puertos concretos."
+}

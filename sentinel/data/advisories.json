@@ -1,0 +1,128 @@
+{
+  "schema": "sentinel.advisories/1",
+  "updated": "2026-11-01",
+  "notes": "Subconjunto curado y offline. No es un feed completo: sirve para demostrar el mecanismo de correlacion version->CVE con vectores CVSS verificables. El matching por version es una INFERENCIA, nunca una validacion de explotabilidad.",
+  "entries": [
+    {
+      "id": "CVE-2023-38408",
+      "products": ["openssh"],
+      "introduced": "8.0",
+      "fixed": "9.3p2",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "summary": "El agente SSH (ssh-agent) con reenvio permite ejecucion remota de codigo via proveedores PKCS#11.",
+      "preconditions": ["ssh-agent con reenvio de agente habilitado", "proveedor PKCS#11 cargado en el cliente"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2023-38408"],
+      "confidence": "inferred"
+    },
+    {
+      "id": "CVE-2018-15473",
+      "products": ["openssh"],
+      "introduced": "0.0",
+      "fixed": "7.8",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+      "summary": "Enumeracion de nombres de usuario validos mediante respuestas diferenciales en la autenticacion.",
+      "preconditions": ["acceso de red al servicio SSH"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2018-15473"],
+      "confidence": "inferred"
+    },
+    {
+      "id": "CVE-2016-0777",
+      "products": ["openssh"],
+      "introduced": "5.4",
+      "fixed": "7.1p2",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
+      "summary": "El cliente SSH (roaming) puede filtrar claves privadas al servidor.",
+      "preconditions": ["cliente vulnerable conectando a un servidor malicioso", "UseRoaming habilitado"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2016-0777"],
+      "confidence": "inferred"
+    },
+    {
+      "id": "CVE-2021-41617",
+      "products": ["openssh"],
+      "introduced": "6.2",
+      "fixed": "8.8",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
+      "summary": "Escalamiento local de privilegios cuando AuthorizedKeysCommand/AuthorizedPrincipalsCommand se ejecuta con privilegios del usuario autenticado.",
+      "preconditions": ["acceso local autenticado", "AuthorizedKeysCommand configurado"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2021-41617"],
+      "confidence": "inferred"
+    },
+    {
+      "id": "CVE-2021-41773",
+      "products": ["apache_httpd"],
+      "introduced": "2.4.49",
+      "fixed": "2.4.50",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "summary": "Traversal de rutas en httpd 2.4.49 permite leer archivos fuera del DocumentRoot.",
+      "preconditions": ["mod_alias/cgi habilitado", "ruta no protegida por Require all denied"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2021-41773"],
+      "confidence": "inferred"
+    },
+    {
+      "id": "CVE-2021-42013",
+      "products": ["apache_httpd"],
+      "introduced": "2.4.50",
+      "fixed": "2.4.51",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "summary": "Correccion incompleta de CVE-2021-41773: traversal y potencial ejecucion remota via CGI.",
+      "preconditions": ["mod_cgi habilitado"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2021-42013"],
+      "confidence": "inferred"
+    },
+    {
+      "id": "CVE-2019-0211",
+      "products": ["apache_httpd"],
+      "introduced": "2.4.17",
+      "fixed": "2.4.39",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+      "summary": "Escalamiento local de privilegios de procesos hijo de httpd a root (scoreboard).",
+      "preconditions": ["capacidad de ejecutar codigo como usuario de servicio (www-data)"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2019-0211"],
+      "confidence": "inferred"
+    },
+    {
+      "id": "CVE-2014-0160",
+      "products": ["openssl"],
+      "introduced": "1.0.1",
+      "fixed": "1.0.1g",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "summary": "Heartbleed: lectura de memoria del proceso TLS (claves, sesiones, credenciales).",
+      "preconditions": ["extension heartbeat habilitada"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2014-0160"],
+      "confidence": "inferred"
+    },
+    {
+      "id": "CVE-2022-0778",
+      "products": ["openssl"],
+      "introduced": "1.1.1",
+      "fixed": "1.1.1n",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+      "summary": "Bucle infinito al parsear certificados con parametros explicitos (denegacion de servicio).",
+      "preconditions": ["servicio expuesto que parsee certificados atacante-controlados"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2022-0778"],
+      "confidence": "inferred"
+    },
+    {
+      "id": "CVE-2011-2523",
+      "products": ["vsftpd"],
+      "introduced": "2.3.4",
+      "fixed": "2.3.5",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+      "summary": "Backdoor introducida en el paquete vsftpd 2.3.4: shell con privilegios del servicio.",
+      "preconditions": ["servicio FTP expuesto"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2011-2523"],
+      "confidence": "inferred"
+    },
+    {
+      "id": "CVE-2015-3306",
+      "products": ["proftpd"],
+      "introduced": "1.3.5",
+      "fixed": "1.3.6",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+      "summary": "mod_copy permite copiar archivos arbitrarios a rutas servidas, llevando a ejecucion de codigo.",
+      "preconditions": ["mod_copy cargado (default en 1.3.5)"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2015-3306"],
+      "confidence": "inferred"
+    }
+  ]
+}

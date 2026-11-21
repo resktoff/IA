@@ -1,0 +1,27 @@
+{
+  "schema": "sentinel.scope/1",
+  "engagement_id": "LAB-LOOPBACK-2026-11",
+  "client": "Laboratorio interno (loopback)",
+  "operator": "analista@example.invalid",
+  "authorization": {
+    "authorized": true,
+    "reference": "LAB-AUTH-2026-11-002",
+    "approved_by": "responsable de plataforma",
+    "scope_note": "Servicios de prueba levantados por el propio operador en 127.0.0.1."
+  },
+  "valid_from": "2026-11-01T00:00:00Z",
+  "expires_at": "2026-12-15T23:59:59Z",
+  "targets": [
+    {
+      "kind": "host",
+      "value": "127.0.0.1",
+      "ports": [8080, 2222],
+      "max_tier": 2,
+      "note": "Tier 2: TCP connect + una petición HTTP/HEAD por servicio."
+    }
+  ],
+  "max_requests": 40,
+  "rate_per_second": 10,
+  "burst": 10,
+  "killswitch_path": "STOP"
+}
